@@ -1,63 +1,39 @@
 <?php
 
 try {
-    echo "Starting process to duplicate records with second teachers...\n";
-   
-    // SQL query to duplicate records with second teachers
-    $sql = "INSERT INTO public.doc_de_guarani (
-                responsabilidad_academica_guarani, 
-                propuesta_formativa_guarani, 
-                periodo_guarani, 
-                actividad_guarani, 
-                docente_guarani, 
-                comision_guarani, 
-                cursados_guarani,
-                ape_nom1_Guarani, 
-                tipo_doc1_Guarani, 
-                num_doc1_Guarani, 
-                ape_nom2_Guarani, 
-                tipo_doc2_Guarani, 
-                num_doc2_Guarani
-            )
-            SELECT 
-                responsabilidad_academica_guarani, 
-                propuesta_formativa_guarani, 
-                periodo_guarani, 
-                actividad_guarani, 
-                docente_guarani, 
-                comision_guarani, 
-                cursados_guarani,
-                ape_nom2_Guarani AS ape_nom1_Guarani,
-                tipo_doc2_Guarani AS tipo_doc1_Guarani, 
-                num_doc2_Guarani AS num_doc1_Guarani, 
-                NULL AS ape_nom2_Guarani,
-                NULL AS tipo_doc2_Guarani, 
-                NULL AS num_doc2_Guarani
-            FROM 
-                public.doc_de_guarani
-            WHERE 
-                ape_nom2_Guarani IS NOT NULL 
-                AND ape_nom2_Guarani <> ''
-                AND (tipo_doc2_Guarani IS NOT NULL AND tipo_doc2_Guarani <> '')
-                AND (num_doc2_Guarani IS NOT NULL AND num_doc2_Guarani <> '')";
-
-    // Execute the query
-    $affectedRows = $conn->exec($sql);    
-    echo "Operacion exitosa. \n";
-    echo "Registros procesados: " . $affectedRows . "\n";
-
-
-    echo "Limpiando columas para el segundo docente.\n";
-    $sql = "UPDATE public.doc_de_guarani SET ape_nom2_Guarani ='', tipo_doc2_Guarani ='', num_doc2_Guarani ='', Docente_Guarani =''
-            WHERE ape_nom2_Guarani IS NOT NULL AND ape_nom2_Guarani <> ''
-                AND (tipo_doc2_Guarani IS NOT NULL AND tipo_doc2_Guarani <> '')
-                AND (num_doc2_Guarani IS NOT NULL AND num_doc2_Guarani <> '')";
-    $affectedRows = $conn->exec($sql);
-    echo "Registros procesados: " . $affectedRows . "\n";
-
-
+    
+    // 2. Extraer año y limpiar periodo (primera pasada)
+    $stmt = $conn->prepare("
+        UPDATE public.Docentes_Guarani 
+        SET 
+            anio_guarani = SUBSTRING(periodo_guarani FROM 1 FOR 4),
+            periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 10))
+        WHERE periodo_guarani LIKE '2024 - 1 - %'
+    ");
+    $stmt->execute();
+    
+    // 3. Limpiar guiones residuales (segunda pasada)
+    $stmt = $conn->prepare("
+        UPDATE public.Docentes_Guarani 
+        SET periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 2))
+        WHERE periodo_guarani LIKE '- %'
+    ");
+    $stmt->execute();
+    
+    echo "Normalización completada con éxito.\n";
+    
+    // Mostrar muestra de resultados
+    $sample = $conn->query("
+        SELECT anio_guarani, periodo_guarani 
+        FROM public.Docentes_Guarani 
+        LIMIT 5
+    ");
+    
+    echo "\nMuestra actualizada:\n";
+    foreach ($sample->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        echo "anio_guarani: {$row['anio_guarani']} | Periodo: {$row['periodo_guarani']}\n";
+    }
+    
 } catch (PDOException $e) {
-    echo "Database Error: " . $e->getMessage() . "\n";
-} catch (Exception $e) {
-    echo "General Error: " . $e->getMessage() . "\n";
+    echo "Error de base de datos: " . $e->getMessage() . "\n";
 }

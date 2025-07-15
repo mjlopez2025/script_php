@@ -13,8 +13,8 @@ $password = '13082019';
 $conn = new PDO("pgsql:host=$host;dbname=$dbname", $user, $password);
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-//require_once "./paso1.php"; // verificar y crear tabla si no existe
-//require_once "./paso2.php"; // importar csv a tablas
+require_once "./paso1.php"; // verificar y crear tabla si no existe
+require_once "./paso2.php"; // importar csv a tablas
 require_once "./paso3.php"; // limpieza de registros
 //require_once "./paso5.php"; 
 //require_once "./paso6.php"; 
