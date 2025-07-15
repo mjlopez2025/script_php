@@ -1,3 +1,14 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "cSpell.words": [
+        "academica",
+        "actividad",
+        "anio",
+        "cursados",
+        "desde",
+        "formativa",
+        "periodo",
+        "propuesta",
+        "tipo"
+    ]
 }
