@@ -37,6 +37,7 @@ try {
                         Anio_guarani varchar (500) NULL,
                         Periodo_Guarani varchar(500) NULL,
                         Docente_Guarani varchar(500) NULL,
+                        Codigo_guarani  varchar(500) NULL,
                         Actividad_Guarani varchar(500) NULL,
                         Cursados_Guarani varchar(500) NULL,
                         ape_nom1_Guarani varchar(500) NULL,
