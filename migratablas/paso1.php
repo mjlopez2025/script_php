@@ -1,5 +1,11 @@
 <?php
 
+echo "=============================================\n";
+echo "SCRIPT PARA SEPARAR DATOS DE DOCENTES \n";
+echo "=============================================\n";
+echo "\nIniciando procesamiento....\n";
+
+
 // $updateStmt = $conn->prepare("TRUNCATE TABLE IF EXISTS public.doc_de_guarani");
 // $updateStmt->execute();
 // echo "Limpiando campos de segundo docente \n";
@@ -27,7 +33,9 @@ try {
     $tableExists = $stmt->fetchColumn();
 
     if (!$tableExists) {
-        echo "La tabla no existe. Creando tabla Docentes_Guarani...\n";
+        echo "=============================================================\n";
+        echo "Paso 1. La tabla no existe. Creando tabla Docentes_Guarani...\n";
+        echo "=============================================================\n";
         
         // SQL para crear la tabla
         $createTable = "CREATE TABLE public.Docentes_Guarani (
@@ -37,6 +45,8 @@ try {
                         Anio_guarani varchar (500) NULL,
                         Periodo_Guarani varchar(500) NULL,
                         Docente_Guarani varchar(500) NULL,
+                        Tipo_Documento varchar(500) NULL,
+                        Num_Documento varchar(500) NULL,
                         Codigo_guarani  varchar(500) NULL,
                         Actividad_Guarani varchar(500) NULL,
                         Cursados_Guarani varchar(500) NULL,
@@ -57,8 +67,13 @@ try {
                         num_doc5_Guarani varchar(500) NULL
                        )";
         
+        $alterTable = "ALTER TABLE public.Docentes_Guarani ADD COLUMN id SERIAL PRIMARY KEY";
+
         $conn->exec($createTable);
         echo "Tabla Docentes_Guarani creada exitosamente.\n";
+
+        $conn->exec($alterTable);
+        echo "Tabla Docentes_Guarani modificada exitosamente.\n";
 
     } else {
         echo "La tabla Docentes_Guarani ya existe. No se realizaron cambios.\n";

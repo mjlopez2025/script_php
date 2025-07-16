@@ -57,7 +57,9 @@ try {
         $rowCount = 0;
         $importedCount = 0;
         
-        echo "Iniciando importación desde ".CSV_FILE_GUARANI."...\n";
+        echo "===========================================================\n";
+        echo "Paso 2. Iniciando importación desde ".CSV_FILE_GUARANI."...\n";
+        echo "===========================================================\n";
 
         while (($data = fgetcsv($handle, 0, DELIMITER)) !== FALSE) {
             $rowCount++;

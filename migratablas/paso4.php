@@ -1,67 +1,89 @@
 <?php
-
-
 try {
-    // Consulta para obtener registros donde el campo Docente contiene múltiples docentes
-    $sql = "SELECT propuesta_formativa_guarani, comision_guarani, docente_guarani FROM public.doc_de_guarani WHERE docente_guarani LIKE '%,%'";
-    $stmt = $conn->query($sql);
+    // 1. Añadir columna código si no existe
+    echo "================================\n";
+    echo "Paso 4. Preparando estructura...\n";
+    echo "================================\n";
+    $conn->exec("ALTER TABLE public.Docentes_Guarani ADD COLUMN IF NOT EXISTS codigo_guarani VARCHAR(20)");
+
+    // 2. Normalización del periodo y extracción del año
+    echo "4.2. Procesando periodo_guarani y año...\n";
+    $conn->exec("
+        UPDATE public.Docentes_Guarani 
+        SET 
+            anio_guarani = SUBSTRING(periodo_guarani FROM 1 FOR 4),
+            periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 10))
+        WHERE periodo_guarani LIKE '2024 - 1 - %'
+    ");
     
-    // Procesar cada registro
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $docenteStr = $row['docente_guarani'];
-        $propuestaFormativa = $row['propuesta_formativa_guarani'];
-        $comision = $row['comision_guarani'];
-        
-        // Separar los docentes (formato: "Apellido Nombre, TipoDoc, NumDoc - Apellido Nombre, TipoDoc, NumDoc")
-        $docentes = explode(' - ', $docenteStr);
-        
-        if (count($docentes) >= 1) {
-            // Procesar primer docente
-            $docente1 = explode(', ', trim($docentes[0]));
-            $ape_nom1 = trim($docente1[0]);
-            $tipo_doc1 = isset($docente1[1]) ? trim($docente1[1]) : '';
-            $num_doc1 = isset($docente1[2]) ? trim($docente1[2]) : '';
-            
-            // Inicializar variables para segundo docente
-            $ape_nom2 = '';
-            $tipo_doc2 = '';
-            $num_doc2 = '';
-            
-            // Procesar segundo docente si existe
-            if (count($docentes) >= 2) {
-                $docente2 = explode(', ', trim($docentes[1]));
-                $ape_nom2 = trim($docente2[0]);
-                $tipo_doc2 = isset($docente2[1]) ? trim($docente2[1]) : '';
-                $num_doc2 = isset($docente2[2]) ? trim($docente2[2]) : '';
-            }
-            
-            // Actualizar registro en la base de datos
-            $updateSql = "UPDATE public.doc_de_guarani 
-                          SET ape_nom1_guarani = :ape_nom1, 
-                              tipo_doc1_guarani = :tipo_doc1, 
-                              num_doc1_guarani = :num_doc1,
-                              ape_nom2_guarani = :ape_nom2, 
-                              tipo_doc2_guarani = :tipo_doc2, 
-                              num_doc2_guarani = :num_doc2
-                          WHERE propuesta_formativa_guarani = :propuesta AND comision_guarani = :comision";
-            
-            $updateStmt = $conn->prepare($updateSql);
-            $updateStmt->bindParam(':ape_nom1', $ape_nom1);
-            $updateStmt->bindParam(':tipo_doc1', $tipo_doc1);
-            $updateStmt->bindParam(':num_doc1', $num_doc1);
-            $updateStmt->bindParam(':ape_nom2', $ape_nom2);
-            $updateStmt->bindParam(':tipo_doc2', $tipo_doc2);
-            $updateStmt->bindParam(':num_doc2', $num_doc2);
-            $updateStmt->bindParam(':propuesta', $propuestaFormativa);
-            $updateStmt->bindParam(':comision', $comision);
-            
-            $updateStmt->execute();
-            
-        }
+    $conn->exec("
+        UPDATE public.Docentes_Guarani 
+        SET periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 2))
+        WHERE periodo_guarani LIKE '- %'
+    ");
+
+    // 3. Limpieza de docentes
+    echo "4.3. Limpiando nombres de docentes...\n";
+    $conn->exec("
+        UPDATE public.Docentes_Guarani 
+        SET docente_guarani = REGEXP_REPLACE(docente_guarani, '^\.\-\,\s*', '')
+        WHERE docente_guarani ~ '^\.\-\,\s*'
+    ");
+
+    // 4. Extracción de códigos de actividad
+    echo "4.4 Procesando códigos de actividad...\n";
+    
+    // Primero extraemos el código (contenido entre paréntesis)
+    $conn->exec("
+        UPDATE public.Docentes_Guarani 
+        SET codigo_guarani = SUBSTRING(
+            actividad_guarani FROM '\(([^)]+)\)'
+        )
+        WHERE actividad_guarani ~ '\([A-Za-z0-9]+\)'
+    ");
+    
+    // Luego limpiamos la actividad (eliminamos código y guión)
+    $conn->exec("
+        UPDATE public.Docentes_Guarani 
+        SET actividad_guarani = TRIM(
+            REGEXP_REPLACE(actividad_guarani, '^\([^)]+\)\s*-\s*', '')
+        )
+        WHERE actividad_guarani ~ '\([^)]+\)\s*-\s*'
+    ");
+
+    // 5. Verificación final
+    echo "\n4.5. Verificación de resultados:\n";
+    
+    $sample = $conn->query("
+        SELECT 
+            anio_guarani, 
+            periodo_guarani, 
+            codigo_guarani,
+            LEFT(actividad_guarani, 30) as actividad,
+            LEFT(docente_guarani, 20) as docente
+        FROM public.Docentes_Guarani 
+        LIMIT 5
+    ");
+    
+    echo str_pad("anio_guarani", 6) . 
+         str_pad("Periodo", 20) . 
+         str_pad("Código", 12) . 
+         str_pad("Actividad", 30) . 
+         "Docente\n";
+    echo str_repeat("-", 90) . "\n";
+    
+    foreach ($sample->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        echo str_pad($row['anio_guarani'], 6) . 
+             str_pad($row['periodo_guarani'], 20) . 
+             str_pad($row['codigo_guarani'] ?? '', 12) . 
+             str_pad($row['actividad'] ?? '', 30) . 
+             ($row['docente'] ?? '') . "\n";
     }
     
-    echo "Proceso completado con éxito.\n";
+    echo "\nNormalización completada con éxito!\n";
     
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
+    echo "\nError de base de datos: " . $e->getMessage() . "\n";
+} catch (Exception $e) {
+    echo "\nError general: " . $e->getMessage() . "\n";
 }
