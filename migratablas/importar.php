@@ -18,7 +18,7 @@ require_once "./paso2.php"; // importar csv a tablas
 require_once "./paso3.php"; // separa los registros con dos o mas docentes
 require_once "./paso4.php"; // limpieza de registros
 require_once "./paso5.php"; 
-//require_once "./paso7.php"; 
+//require_once "./paso6.php"; 
 //require_once "./paso8.php"; 
 
 
