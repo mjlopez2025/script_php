@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,7 +10,7 @@
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1><i class="fas fa-chalkboard-teacher"></i> TINKUY - Sistema informático integral</h1>
+            <img class="logo" src="logo.png">
         </header>
 
         <main class="app-main">
@@ -34,8 +33,16 @@
                     </div>
 
                     <button type="button" id="refreshBtn" class="refresh-btn">
-                        <i class="fas fa-sync-alt"></i> Actualizar
+                        <i class="fas fa-sync-alt"></i> Buscar
                     </button>
+                    
+                    <!-- Añadido el contenedor de búsqueda -->
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar...">
+                        <button type="button" id="searchBtn" class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </form>
 
                 <div id="resultsContainer" class="results-container"></div>
@@ -45,7 +52,7 @@
         </main>
 
         <footer class="app-footer">
-            <p>TINKUY - Sistema informático integral 1.0 &copy; 2025</p>
+            <p>TINKUY - Sistema Integral de Información  1.0 &copy; 2025</p>
         </footer>
     </div>
 
@@ -63,8 +70,28 @@ document.getElementById('queryType').addEventListener('change', () => {
     currentPage = 1;
 });
 
+// Añadido el controlador de eventos para el botón de búsqueda
+document.getElementById('searchBtn').addEventListener('click', function() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.classList.toggle('active');
+    
+    // Enfocar el input cuando se muestra
+    if (searchInput.classList.contains('active')) {
+        searchInput.focus();
+    }
+});
+
+// Opcional: puedes añadir funcionalidad de búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('keyup', function(e) {
+    if (e.key === 'Enter' || this.value === '') {
+        currentPage = 1;
+        cargarResultados();
+    }
+});
+
 async function cargarResultados() {
     const queryType = document.getElementById('queryType').value;
+    const searchTerm = document.getElementById('searchInput').value.trim();
     const resultsContainer = document.getElementById('resultsContainer');
     const paginationContainer = document.getElementById('paginationContainer');
 
