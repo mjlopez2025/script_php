@@ -443,4 +443,84 @@ th {
         }
         .filter-input {
             width: 200px;
+            height: 30px;
         }
+
+
+
+
+
+
+/* Estilos para los botones de exportación */
+.export-buttons {
+    display: none; /* Inicialmente ocultos */
+    position: absolute;
+    right: 35px;
+    top: -45px;
+    z-index: 10;
+}
+
+.query-panel {
+    position: relative; /* Para que los botones se posicionen relativos a este contenedor */
+    margin-top: 20px;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 10px;
+}
+
+/* Estilos para la tabla */
+.results-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.results-container th, 
+.results-container td {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+}
+
+.results-container th {
+    background-color: #f8f9fa;
+    text-align: left;
+}
+
+.export-buttons .btn {
+    padding: 4px 20px;
+    font-size: 1.1rem;
+    min-width: 150px; /* Ancho mínimo consistente */
+    border-radius: 10px;
+}
+
+.custom-navbar {
+    background-color: #2c3e50;
+    margin-top: 1px;
+    height: 40px;
+    color: white;
+}
+
+.custom-navbar .nav-link,
+.custom-navbar .navbar-brand,
+.custom-navbar .dropdown-toggle {
+    color: white !important;
+}
+
+.custom-navbar .nav-link:hover,
+.custom-navbar .dropdown-toggle:hover {
+    color: #ccc !important; /* Opcional: color al pasar el mouse */
+}
+
+.custom-navbar .dropdown-menu {
+    background-color: #34495e; /* Opcional: fondo del menú desplegable */
+}
+
+.custom-navbar .dropdown-item {
+    color: white !important;
+}
+
+.custom-navbar .dropdown-item:hover {
+    background-color: #2c3e50; /* Igual al navbar */
+    color: #ccc !important;
+}
