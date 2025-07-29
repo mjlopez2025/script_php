@@ -9,30 +9,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
-        .selection-title {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin: 20px auto;
-            border-radius: 5px;
-            font-weight: bold;
-            text-align: center;
-            font-size: 1.25rem;
-            max-width: 80%;
-        }
-        /* Estilos para el filtro en el navbar */
-        .filter-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .filter-label {
-            margin-bottom: 0;
-            white-space: nowrap;
-            font-weight: 500;
-        }
-        .filter-input {
-            width: 200px;
-        }
+    .selection-title {
+        background-color: #f8f9fa;
+        padding: 15px;
+        margin: 20px auto;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+        font-size: 1.25rem;
+        max-width: 80%;
+    }
+
+    /* Estilos para el filtro en el navbar */
+    .filter-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-label {
+        margin-bottom: 0;
+        white-space: nowrap;
+        font-weight: 500;
+    }
+
+    .filter-input {
+        width: 200px;
+    }
     </style>
 </head>
 
@@ -61,24 +64,33 @@
                             </ul>
                         </li>
                     </ul>
-                    
+
                     <!-- Contenedor del filtro -->
                     <div class="filter-container">
                         <label for="filterInput" class="filter-label">Filtrar:</label>
-                        <input type="text" id="filterInput" class="form-control filter-input" placeholder="Nombre/Apellido">
+                        <input type="text" id="filterInput" class="form-control filter-input"
+                            placeholder="Nombre/Apellido">
                         <button type="button" id="filterBtn" class="btn btn-outline-primary">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
-                    
+
                     <type="button" id="refreshBtn" class="btn ms-2"></button>
                 </div>
             </div>
         </nav>
 
-        <!-- Título que muestra la selección actual -->
+        <!-- Titulo -->
         <div id="selectionTitle" class="selection-title">
             Seleccione un grupo de docentes del menú desplegable
+        </div>
+
+        <!-- Botones PDF Y EXCEL -->
+        <div class="d-flex justify-content-center my-3 gap-3">
+            <button onclick="exportarAExcel()" class="btn btn-success"><i class="fas fa-file-excel"></i> Exportar
+                Excel</button>
+            <button onclick="exportarAPDF()" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Exportar
+                PDF</button>
         </div>
 
         <main class="app-main">
@@ -97,7 +109,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js"></script>
-    
+
     <script>
     let currentPage = 1;
     const perPage = 10;
@@ -124,10 +136,11 @@
 
         try {
             const response = await fetch(
-                `http://localhost:8000/consultas.php?action=getData&type=${currentQueryType}&page=${currentPage}&search=${encodeURIComponent(currentSearchTerm)}`);
-            
+                `http://localhost:8000/consultas.php?action=getData&type=${currentQueryType}&page=${currentPage}&search=${encodeURIComponent(currentSearchTerm)}`
+            );
+
             if (!response.ok) throw new Error('Error en la respuesta del servidor');
-            
+
             const data = await response.json();
 
             if (!data.success) {
@@ -135,13 +148,14 @@
             }
 
             // Construir tabla
-            let html = `<h3>Resultados (Página ${data.pagination.current_page} de ${data.pagination.total_pages})</h3>`;
-            
+            let html =
+                `<h3>Resultados (Página ${data.pagination.current_page} de ${data.pagination.total_pages})</h3>`;
+
             // Mostrar término de búsqueda si existe
             if (currentSearchTerm) {
                 html += `<p class="search-info">Filtrado por: <strong>${currentSearchTerm}</strong></p>`;
             }
-            
+
             html += '<div class="table-container"><table><thead><tr>';
 
             if (data.data.length > 0) {
@@ -165,7 +179,10 @@
             resultsContainer.innerHTML = html;
 
             // Paginación
-            const { current_page, total_pages } = data.pagination;
+            const {
+                current_page,
+                total_pages
+            } = data.pagination;
             let pagHtml = '';
 
             if (current_page > 1) {
@@ -216,6 +233,64 @@
         cargarResultados();
     }
 
+
+    function exportarAExcel() {
+            const table = document.querySelector("#resultsContainer table");
+            if (!table) {
+                alert("No hay datos para exportar.");
+                return;
+            }
+            const wb = XLSX.utils.table_to_book(table, {
+                sheet: "Resultados"
+            });
+            XLSX.writeFile(wb, "resultados.xlsx");
+        }
+
+        function exportarAPDF() {
+    const table = document.querySelector("#resultsContainer table");
+    if (!table) {
+        alert("No hay datos para exportar.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: "landscape", // horizontal para que entre mejor
+        unit: "pt",
+        format: "a4"
+    });
+
+    const fecha = new Date().toLocaleString('es-AR');
+
+    doc.setFontSize(14);
+    doc.text("Listado de Docentes - Página actual", 40, 40);
+    doc.setFontSize(10);
+    doc.text(`Exportado el ${fecha}`, 40, 60);
+
+    doc.autoTable({
+        html: table,
+        startY: 80,
+        margin: { top: 40, left: 40, right: 40 },
+        styles: {
+            fontSize: 9,
+            cellPadding: 4,
+        },
+        headStyles: {
+            fillColor: [41, 128, 185], // azul UNDAV
+            textColor: 255,
+            halign: 'center',
+            fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+            fillColor: [240, 240, 240]
+        },
+        theme: 'striped'
+    });
+
+    doc.save("resultados.pdf");
+}
+
+        
     // ===== EVENT LISTENERS ===== //
     document.addEventListener('DOMContentLoaded', function() {
         // Evento para el botón de refrescar
@@ -248,12 +323,20 @@
                 currentSelectionText = this.textContent;
                 currentPage = 1;
                 currentSearchTerm = ''; // Resetear el filtro al cambiar de categoría
-                document.getElementById('filterInput').value = ''; // Limpiar el campo de búsqueda
-                
+                document.getElementById('filterInput').value =
+                    ''; // Limpiar el campo de búsqueda
+
                 cargarResultados();
             });
         });
     });
     </script>
+    <!-- SheetJS para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF y autoTable para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 </body>
+
 </html>
