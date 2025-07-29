@@ -11,137 +11,212 @@ class ConsultasDocentes {
     // ================================
     // 1. DOCENTES COMBINADOS 
     // ================================
-    public function docentesCombinados($page = 1, $perPage = 100) {
-    $offset = ($page - 1) * $perPage;
+    public function docentesCombinados($page = 1, $perPage = 100, $searchTerm = '') {
+        $offset = ($page - 1) * $perPage;
+        $whereClause = '';
+        $params = [];
 
-    $sql = "SELECT 
-        COALESCE(m.apellidonombre_desc, 'Sin información') AS \"Apellido Nombre\",
-        COALESCE(m.nro_documento::TEXT, 'Sin información') AS \"Doc\",
-        COALESCE(m.categoria_desc, 'Sin información') AS \"Cat\", 
-        COALESCE(m.nro_cargo::TEXT, 'Sin información') AS \"Cargo\",
-        COALESCE(m.dedicacion_desc, 'Sin información') AS \"Dedicacion\",
-        COALESCE(m.estadodelcargo_desc, 'Sin información') AS \"Estado\", 
-        COALESCE(m.dependenciadesign_desc, 'Sin información') AS \"Dpto\",
-        COALESCE(g.responsabilidad_academica_guarani, 'Sin información') AS \"Resp Acad\",
-        COALESCE(g.propuesta_formativa_guarani, 'Sin información') AS \"Propuesta\", 
-        COALESCE(g.comision_guarani, 'Sin información') AS \"Com\",
-        COALESCE(g.anio_guarani::TEXT, 'Sin información') AS \"Año\",
-        COALESCE(g.periodo_guarani, 'Sin información') AS \"Périodo\",
-        COALESCE(g.actividad_guarani, 'Sin información') AS \"Actividad\",
-        COALESCE(g.cursados_guarani, 'Sin información') AS \"Est\"
-    FROM 
-        docentes_mapuche AS m
-    LEFT JOIN 
-        docentes_guarani AS g 
-        ON m.nro_documento::VARCHAR = g.num_documento  
-    WHERE 
-        g.num_documento IS NULL OR 
-        (m.categoria_desc <> g.propuesta_formativa_guarani OR
-         m.dedicacion_desc <> g.actividad_guarani)
-    ORDER BY 
-        m.apellidonombre_desc
-    LIMIT :limit OFFSET :offset";
+        if (!empty($searchTerm)) {
+            $whereClause = " AND m.apellidonombre_desc ILIKE :searchTerm";
+            $params[':searchTerm'] = '%' . $searchTerm . '%';
+        }
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
+        $sql = "SELECT 
+            COALESCE(m.apellidonombre_desc, 'Sin información') AS \"Apellido Nombre\",
+            COALESCE(m.nro_documento::TEXT, 'Sin información') AS \"Doc\",
+            COALESCE(m.categoria_desc, 'Sin información') AS \"Cat\", 
+            COALESCE(m.nro_cargo::TEXT, 'Sin información') AS \"Cargo\",
+            COALESCE(m.dedicacion_desc, 'Sin información') AS \"Dedicacion\",
+            COALESCE(m.estadodelcargo_desc, 'Sin información') AS \"Estado\", 
+            COALESCE(m.dependenciadesign_desc, 'Sin información') AS \"Dpto\",
+            COALESCE(g.responsabilidad_academica_guarani, 'Sin información') AS \"Resp Acad\",
+            COALESCE(g.propuesta_formativa_guarani, 'Sin información') AS \"Propuesta\", 
+            COALESCE(g.comision_guarani, 'Sin información') AS \"Com\",
+            COALESCE(g.anio_guarani::TEXT, 'Sin información') AS \"Año\",
+            COALESCE(g.periodo_guarani, 'Sin información') AS \"Périodo\",
+            COALESCE(g.actividad_guarani, 'Sin información') AS \"Actividad\",
+            COALESCE(g.cursados_guarani, 'Sin información') AS \"Est\"
+        FROM 
+            docentes_mapuche AS m
+        LEFT JOIN 
+            docentes_guarani AS g 
+            ON m.nro_documento::VARCHAR = g.num_documento  
+        WHERE 
+            (g.num_documento IS NULL OR 
+            (m.categoria_desc <> g.propuesta_formativa_guarani OR
+             m.dedicacion_desc <> g.actividad_guarani))
+            $whereClause
+        ORDER BY 
+            m.apellidonombre_desc
+        LIMIT :limit OFFSET :offset";
 
-    return [
-        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
-        'total' => $this->contarDocentesCombinados()
-    ];
-}
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        
+        if (!empty($searchTerm)) {
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+        }
+        
+        $stmt->execute();
 
+        return [
+            'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+            'total' => $this->contarDocentesCombinados($searchTerm)
+        ];
+    }
 
+    public function contarDocentesCombinados($searchTerm = '') {
+        $whereClause = '';
+        $params = [];
 
-    public function contarDocentesCombinados() {
+        if (!empty($searchTerm)) {
+            $whereClause = " AND m.apellidonombre_desc ILIKE :searchTerm";
+            $params[':searchTerm'] = '%' . $searchTerm . '%';
+        }
+
         $sql = "SELECT COUNT(*) as total
                 FROM docentes_mapuche AS m
                 LEFT JOIN docentes_guarani AS g 
                 ON m.nro_documento::VARCHAR = g.num_documento  
-                WHERE g.num_documento IS NULL OR 
+                WHERE (g.num_documento IS NULL OR 
                 (m.categoria_desc <> g.propuesta_formativa_guarani OR
-                 m.dedicacion_desc <> g.actividad_guarani)";
+                 m.dedicacion_desc <> g.actividad_guarani))
+                 $whereClause";
         
-        return $this->conn->query($sql)->fetch(PDO::FETCH_ASSOC)['total'];
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!empty($searchTerm)) {
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+        }
+        
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
 
     // ================================
     // 2. DOCENTES MAPUCHE 
     // ================================
-    public function obtenerDocentesMapuche($page = 1, $perPage = 100) {
-    $offset = ($page - 1) * $perPage;
+    public function obtenerDocentesMapuche($page = 1, $perPage = 100, $searchTerm = '') {
+        $offset = ($page - 1) * $perPage;
+        $whereClause = '';
+        $params = [];
 
-    $sql = "SELECT 
-        COALESCE(apellidonombre_desc, 'Sin información') AS apellido_nombre,
-        COALESCE(nro_documento::TEXT, 'Sin información') AS documento,
-        COALESCE(categoria_desc, 'Sin información') AS categoria,
-        COALESCE(nro_cargo::TEXT, 'Sin información') AS num_cargo,
-        COALESCE(dedicacion_desc, 'Sin información') AS dedicacion,
-        COALESCE(estadodelcargo_desc, 'Sin información') AS estado_cargo,
-        COALESCE(dependenciadesign_desc, 'Sin información') AS dependencia,
-        COALESCE(anio_id::TEXT, 'Sin información') AS anio
-    FROM 
-        docentes_mapuche
-    ORDER BY 
-        apellidonombre_desc
-    LIMIT :limit OFFSET :offset";
+        if (!empty($searchTerm)) {
+            $whereClause = " WHERE apellidonombre_desc ILIKE :searchTerm";
+            $params[':searchTerm'] = '%' . $searchTerm . '%';
+        }
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
+        $sql = "SELECT 
+            COALESCE(apellidonombre_desc, 'Sin información') AS \"Apellido y Nombre\",
+            COALESCE(nro_documento::TEXT, 'Sin información') AS \"Num. Doc.\",
+            COALESCE(categoria_desc, 'Sin información') AS \"EstCategoria\",
+            COALESCE(nro_cargo::TEXT, 'Sin información') AS \"Cargo\",
+            COALESCE(dedicacion_desc, 'Sin información') AS \"Dedicación\",
+            COALESCE(estadodelcargo_desc, 'Sin información') AS \"Cargo\",
+            COALESCE(dependenciadesign_desc, 'Sin información') AS \"Dependencia\",
+            COALESCE(anio_id::TEXT, 'Sin información') AS \"Año\"
+        FROM 
+            docentes_mapuche
+        $whereClause
+        ORDER BY 
+            apellidonombre_desc
+        LIMIT :limit OFFSET :offset";
 
-    return [
-        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
-        'total' => $this->contarDocentesMapuche()
-    ];
-}
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        
+        if (!empty($searchTerm)) {
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+        }
+        
+        $stmt->execute();
 
+        return [
+            'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+            'total' => $this->contarDocentesMapuche($searchTerm)
+        ];
+    }
 
-
-    public function contarDocentesMapuche() {
-        return $this->conn->query("SELECT COUNT(*) FROM docentes_mapuche")->fetchColumn();
+    public function contarDocentesMapuche($searchTerm = '') {
+        $sql = "SELECT COUNT(*) FROM docentes_mapuche";
+        
+        if (!empty($searchTerm)) {
+            $sql .= " WHERE apellidonombre_desc ILIKE :searchTerm";
+        }
+        
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!empty($searchTerm)) {
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchColumn();
     }
 
     // ================================
     // 3. DOCENTES GUARANI 
     // ================================
-    public function obtenerDocentesGuarani($page = 1, $perPage = 100) {
-    $offset = ($page - 1) * $perPage;
+    public function obtenerDocentesGuarani($page = 1, $perPage = 100, $searchTerm = '') {
+        $offset = ($page - 1) * $perPage;
+        $whereClause = '';
+        $params = [];
 
-    $sql = "SELECT 
-        COALESCE(responsabilidad_academica_guarani, 'Sin información') AS responsabilidad_academica,
-        COALESCE(propuesta_formativa_guarani, 'Sin información') AS propuesta_formativa,
-        COALESCE(comision_guarani, 'Sin información') AS comision,
-        COALESCE(anio_guarani::TEXT, 'Sin información') AS anio,
-        COALESCE(periodo_guarani, 'Sin información') AS periodo,
-        COALESCE(actividad_guarani, 'Sin información') AS actividad,
-        COALESCE(codigo_guarani, 'Sin información') AS codigo,
-        COALESCE(cursados_guarani, 'Sin información') AS cursados,
-        COALESCE(num_documento::TEXT, 'Sin información') AS documento
-    FROM 
-        docentes_guarani
-    ORDER BY 
-        propuesta_formativa_guarani
-    LIMIT :limit OFFSET :offset";
+        if (!empty($searchTerm)) {
+            $whereClause = " WHERE num_documento::TEXT ILIKE :searchTerm";
+            $params[':searchTerm'] = '%' . $searchTerm . '%';
+        }
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
+        $sql = "SELECT 
+            COALESCE(responsabilidad_academica_guarani, 'Sin información') AS \"Resp. Acad.\",
+            COALESCE(propuesta_formativa_guarani, 'Sin información') AS \"Propuesta\",
+            COALESCE(comision_guarani, 'Sin información') AS \"Comisión\",
+            COALESCE(anio_guarani::TEXT, 'Sin información') AS \"Año\",
+            COALESCE(periodo_guarani, 'Sin información') AS \"Periodo\",
+            COALESCE(actividad_guarani, 'Sin información') AS \"Actividad\",
+            COALESCE(codigo_guarani, 'Sin información') AS \"Código\",
+            COALESCE(cursados_guarani, 'Sin información') AS \"Est\",
+            COALESCE(num_documento::TEXT, 'Sin información') AS \"Num. Doc.\"
+        FROM 
+            docentes_guarani
+        $whereClause
+        ORDER BY 
+            propuesta_formativa_guarani
+        LIMIT :limit OFFSET :offset";
 
-    return [
-        'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
-        'total' => $this->contarDocentesGuarani()
-    ];
-}
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        
+        if (!empty($searchTerm)) {
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+        }
+        
+        $stmt->execute();
 
+        return [
+            'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+            'total' => $this->contarDocentesGuarani($searchTerm)
+        ];
+    }
 
-
-    public function contarDocentesGuarani() {
-        return $this->conn->query("SELECT COUNT(*) FROM docentes_guarani")->fetchColumn();
+    public function contarDocentesGuarani($searchTerm = '') {
+        $sql = "SELECT COUNT(*) FROM docentes_guarani";
+        
+        if (!empty($searchTerm)) {
+            $sql .= " WHERE num_documento::TEXT ILIKE :searchTerm";
+        }
+        
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!empty($searchTerm)) {
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchColumn();
     }
 }
 
@@ -164,7 +239,8 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
         $response = [];
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $perPage = 100; // 10 registros por página como solicitaste
+        $perPage = 100;
+        $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
         
         switch ($_GET['action']) {
             case 'getData':
@@ -173,9 +249,9 @@ try {
                 }
                 
                 $result = match($_GET['type']) {
-                    'guarani' => $consultas->obtenerDocentesGuarani($page, $perPage),
-                    'mapuche' => $consultas->obtenerDocentesMapuche($page, $perPage),
-                    'combinados' => $consultas->docentesCombinados($page, $perPage),
+                    'guarani' => $consultas->obtenerDocentesGuarani($page, $perPage, $searchTerm),
+                    'mapuche' => $consultas->obtenerDocentesMapuche($page, $perPage, $searchTerm),
+                    'combinados' => $consultas->docentesCombinados($page, $perPage, $searchTerm),
                     default => throw new Exception("Tipo de consulta no válido")
                 };
                 
@@ -209,12 +285,4 @@ try {
     ]);
     exit;
 }
-
-
-    // ==========
-    // 3. FILTROS
-    // ==========
-
-
-    
 ?>

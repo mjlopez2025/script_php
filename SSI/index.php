@@ -1,197 +1,259 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Docentes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .selection-title {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px auto;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.25rem;
+            max-width: 80%;
+        }
+        /* Estilos para el filtro en el navbar */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .filter-input {
+            width: 200px;
+        }
+    </style>
 </head>
+
 <body>
     <div class="app-container">
         <header class="app-header">
             <img class="logo" src="logo.png">
         </header>
 
-        <main class="app-main">
-            <div class="query-panel">
-                <div class="connection-info">
-                    <span class="db-status connected">
-                        <i class="fas fa-circle"></i> Conectado a SII
-                    </span>
-                </div>
-
-                <form id="queryForm" class="query-controls">
-                    <div class="select-wrapper">
-                        <select name="query_type" id="queryType" class="query-select">
-                            <option value="" disabled selected>Seleccione un grupo de docentes...</option>
-                            <option value="guarani">Docentes Guaraní</option>
-                            <option value="mapuche">Docentes Mapuche</option>
-                            <option value="combinados">Docentes Combinados</option>
-                        </select>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-
-                    <button type="button" id="refreshBtn" class="refresh-btn">
-                        <i class="fas fa-sync-alt"></i> Buscar
-                    </button>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Docentes
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-value="guarani">Docentes Guaraní</a></li>
+                                <li><a class="dropdown-item" data-value="mapuche">Docentes Mapuche</a></li>
+                                <li><a class="dropdown-item" data-value="combinados">Docentes Combinados</a></li>
+                            </ul>
+                        </li>
+                    </ul>
                     
-                    <!-- Añadido el contenedor de búsqueda -->
-                    <div class="search-container">
-                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar...">
-                        <button type="button" id="searchBtn" class="search-btn">
+                    <!-- Contenedor del filtro -->
+                    <div class="filter-container">
+                        <label for="filterInput" class="filter-label">Filtrar:</label>
+                        <input type="text" id="filterInput" class="form-control filter-input" placeholder="Nombre/Apellido">
+                        <button type="button" id="filterBtn" class="btn btn-outline-primary">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
-                </form>
+                    
+                    <type="button" id="refreshBtn" class="btn ms-2"></button>
+                </div>
+            </div>
+        </nav>
 
+        <!-- Título que muestra la selección actual -->
+        <div id="selectionTitle" class="selection-title">
+            Seleccione un grupo de docentes del menú desplegable
+        </div>
+
+        <main class="app-main">
+            <div class="query-panel">
+                <!-- Sección de resultados -->
                 <div id="resultsContainer" class="results-container"></div>
                 <div id="paginationContainer" class="pagination-container"></div>
-
             </div>
         </main>
 
         <footer class="app-footer">
-            <p>TINKUY - Sistema Integral de Información  1.0 &copy; 2025</p>
+            <p>TINKUY - Sistema Integral de Información 1.0 &copy; 2025</p>
         </footer>
     </div>
 
-
-     <script>
-let currentPage = 1;
-const perPage = 10;
-
-document.getElementById('refreshBtn').addEventListener('click', () => {
-    currentPage = 1;
-    cargarResultados();
-});
-
-document.getElementById('queryType').addEventListener('change', () => {
-    currentPage = 1;
-});
-
-// Añadido el controlador de eventos para el botón de búsqueda
-document.getElementById('searchBtn').addEventListener('click', function() {
-    const searchInput = document.getElementById('searchInput');
-    searchInput.classList.toggle('active');
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js"></script>
     
-    // Enfocar el input cuando se muestra
-    if (searchInput.classList.contains('active')) {
-        searchInput.focus();
-    }
-});
+    <script>
+    let currentPage = 1;
+    const perPage = 10;
+    let currentQueryType = '';
+    let currentSelectionText = 'Seleccione un grupo de docentes del menú desplegable';
+    let currentSearchTerm = '';
 
-// Opcional: puedes añadir funcionalidad de búsqueda en tiempo real
-document.getElementById('searchInput').addEventListener('keyup', function(e) {
-    if (e.key === 'Enter' || this.value === '') {
-        currentPage = 1;
-        cargarResultados();
-    }
-});
+    // Función principal para cargar resultados
+    async function cargarResultados() {
+        const resultsContainer = document.getElementById('resultsContainer');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const selectionTitle = document.getElementById('selectionTitle');
 
-async function cargarResultados() {
-    const queryType = document.getElementById('queryType').value;
-    const searchTerm = document.getElementById('searchInput').value.trim();
-    const resultsContainer = document.getElementById('resultsContainer');
-    const paginationContainer = document.getElementById('paginationContainer');
+        if (!currentQueryType) {
+            resultsContainer.innerHTML = '<div class="error">Seleccione un tipo de docentes del menú</div>';
+            paginationContainer.innerHTML = '';
+            selectionTitle.textContent = currentSelectionText;
+            return;
+        }
 
-    if (!queryType) {
-        resultsContainer.innerHTML = '<div class="error">Seleccione un tipo de consulta</div>';
+        resultsContainer.innerHTML = '<div class="loading">Cargando datos...</div>';
         paginationContainer.innerHTML = '';
-        return;
-    }
+        selectionTitle.textContent = `${currentSelectionText}`;
 
-    resultsContainer.innerHTML = '<div class="loading">Cargando datos...</div>';
-    paginationContainer.innerHTML = '';
+        try {
+            const response = await fetch(
+                `http://localhost:8000/consultas.php?action=getData&type=${currentQueryType}&page=${currentPage}&search=${encodeURIComponent(currentSearchTerm)}`);
+            
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            
+            const data = await response.json();
 
-    try {
-        const response = await fetch(`http://localhost:8000/consultas.php?action=getData&type=${queryType}&page=${currentPage}`);
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('La respuesta no es JSON');
-        }
+            if (!data.success) {
+                throw new Error(data.error || 'Error desconocido');
+            }
 
-        const data = await response.json();
+            // Construir tabla
+            let html = `<h3>Resultados (Página ${data.pagination.current_page} de ${data.pagination.total_pages})</h3>`;
+            
+            // Mostrar término de búsqueda si existe
+            if (currentSearchTerm) {
+                html += `<p class="search-info">Filtrado por: <strong>${currentSearchTerm}</strong></p>`;
+            }
+            
+            html += '<div class="table-container"><table><thead><tr>';
 
-        if (!data.success) {
-            throw new Error(data.error || 'Error desconocido');
-        }
-
-        // Construir tabla
-        let html = `<h3>Resultados (Página ${data.pagination.current_page} de ${data.pagination.total_pages})</h3>`;
-        html += '<div class="table-container"><table><thead><tr>';
-
-        if (data.data.length > 0) {
-            Object.keys(data.data[0]).forEach(key => {
-                html += `<th>${key}</th>`;
-            });
-            html += '</tr></thead><tbody>';
-
-            data.data.forEach(row => {
-                html += '<tr>';
-                Object.values(row).forEach(value => {
-                    html += `<td>${value ?? ''}</td>`;
+            if (data.data.length > 0) {
+                Object.keys(data.data[0]).forEach(key => {
+                    html += `<th>${key}</th>`;
                 });
-                html += '</tr>';
-            });
-        }
+                html += '</tr></thead><tbody>';
 
-        html += '</tbody></table></div>';
-        resultsContainer.innerHTML = html;
+                data.data.forEach(row => {
+                    html += '<tr>';
+                    Object.values(row).forEach(value => {
+                        html += `<td>${value ?? ''}</td>`;
+                    });
+                    html += '</tr>';
+                });
+            } else {
+                html += '<tr><td colspan="100%" class="text-center">No se encontraron resultados</td></tr>';
+            }
 
-        // Paginación mejorada
-        const { current_page, total_pages } = data.pagination;
-        let pagHtml = '';
+            html += '</tbody></table></div>';
+            resultsContainer.innerHTML = html;
 
-        if (current_page > 1) {
-            pagHtml += `<button onclick="irPagina(1)">«</button>`;
-            pagHtml += `<button onclick="irPagina(${current_page - 1})">‹</button>`;
-        }
+            // Paginación
+            const { current_page, total_pages } = data.pagination;
+            let pagHtml = '';
 
-        const maxPagesToShow = 5;
-        let startPage = Math.max(1, current_page - Math.floor(maxPagesToShow / 2));
-        let endPage = startPage + maxPagesToShow - 1;
+            if (current_page > 1) {
+                pagHtml += `<button onclick="irPagina(1)">«</button>`;
+                pagHtml += `<button onclick="irPagina(${current_page - 1})">‹</button>`;
+            }
 
-        if (endPage > total_pages) {
-            endPage = total_pages;
-            startPage = Math.max(1, endPage - maxPagesToShow + 1);
-        }
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, current_page - Math.floor(maxPagesToShow / 2));
+            let endPage = startPage + maxPagesToShow - 1;
 
-        if (startPage > 1) {
-            pagHtml += `<span>...</span>`;
-        }
+            if (endPage > total_pages) {
+                endPage = total_pages;
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
 
-        for (let i = startPage; i <= endPage; i++) {
-            pagHtml += `<button onclick="irPagina(${i})" ${i === current_page ? 'disabled' : ''}>${i}</button>`;
-        }
+            if (startPage > 1) {
+                pagHtml += `<span>...</span>`;
+            }
 
-        if (endPage < total_pages) {
-            pagHtml += `<span>...</span>`;
-        }
+            for (let i = startPage; i <= endPage; i++) {
+                pagHtml += `<button onclick="irPagina(${i})" ${i === current_page ? 'disabled' : ''}>${i}</button>`;
+            }
 
-        if (current_page < total_pages) {
-            pagHtml += `<button onclick="irPagina(${current_page + 1})">›</button>`;
-            pagHtml += `<button onclick="irPagina(${total_pages})">»</button>`;
-        }
+            if (endPage < total_pages) {
+                pagHtml += `<span>...</span>`;
+            }
 
-        paginationContainer.innerHTML = pagHtml;
+            if (current_page < total_pages) {
+                pagHtml += `<button onclick="irPagina(${current_page + 1})">›</button>`;
+                pagHtml += `<button onclick="irPagina(${total_pages})">»</button>`;
+            }
 
-    } catch (error) {
-        console.error('Error:', error);
-        resultsContainer.innerHTML = `
+            paginationContainer.innerHTML = pagHtml;
+
+        } catch (error) {
+            console.error('Error:', error);
+            resultsContainer.innerHTML = `
             <div class="error">
                 <strong>Error al cargar datos:</strong> ${error.message}
                 <button onclick="location.reload()">Reintentar</button>
             </div>`;
+        }
     }
-}
 
-function irPagina(pagina) {
-    currentPage = pagina;
-    cargarResultados();
-}
-</script>
+    function irPagina(pagina) {
+        currentPage = pagina;
+        cargarResultados();
+    }
 
+    // ===== EVENT LISTENERS ===== //
+    document.addEventListener('DOMContentLoaded', function() {
+        // Evento para el botón de refrescar
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            currentPage = 1;
+            cargarResultados();
+        });
 
+        // Evento para el botón de filtro
+        document.getElementById('filterBtn').addEventListener('click', function() {
+            currentSearchTerm = document.getElementById('filterInput').value.trim();
+            currentPage = 1;
+            cargarResultados();
+        });
+
+        // Evento para búsqueda al presionar Enter en el filtro
+        document.getElementById('filterInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                currentSearchTerm = this.value.trim();
+                currentPage = 1;
+                cargarResultados();
+            }
+        });
+
+        // Eventos para los items del dropdown del navbar
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentQueryType = this.dataset.value;
+                currentSelectionText = this.textContent;
+                currentPage = 1;
+                currentSearchTerm = ''; // Resetear el filtro al cambiar de categoría
+                document.getElementById('filterInput').value = ''; // Limpiar el campo de búsqueda
+                
+                cargarResultados();
+            });
+        });
+    });
+    </script>
 </body>
 </html>
