@@ -22,33 +22,39 @@ class ConsultasDocentes {
         }
 
         $sql = "SELECT 
-            COALESCE(m.apellidonombre_desc, 'Sin información') AS \"Apellido Nombre\",
-            COALESCE(m.nro_documento::TEXT, 'Sin información') AS \"Doc\",
-            COALESCE(m.categoria_desc, 'Sin información') AS \"Cat\", 
-            COALESCE(m.nro_cargo::TEXT, 'Sin información') AS \"Cargo\",
-            COALESCE(m.dedicacion_desc, 'Sin información') AS \"Dedicacion\",
-            COALESCE(m.estadodelcargo_desc, 'Sin información') AS \"Estado\", 
-            COALESCE(m.dependenciadesign_desc, 'Sin información') AS \"Dpto\",
-            COALESCE(g.responsabilidad_academica_guarani, 'Sin información') AS \"Resp Acad\",
-            COALESCE(g.propuesta_formativa_guarani, 'Sin información') AS \"Propuesta\", 
-            COALESCE(g.comision_guarani, 'Sin información') AS \"Com\",
-            COALESCE(g.anio_guarani::TEXT, 'Sin información') AS \"Año\",
-            COALESCE(g.periodo_guarani, 'Sin información') AS \"Périodo\",
-            COALESCE(g.actividad_guarani, 'Sin información') AS \"Actividad\",
-            COALESCE(g.cursados_guarani, 'Sin información') AS \"Est\"
-        FROM 
-            docentes_mapuche AS m
-        LEFT JOIN 
-            docentes_guarani AS g 
-            ON m.nro_documento::VARCHAR = g.num_documento  
-        WHERE 
-            (g.num_documento IS NULL OR 
-            (m.categoria_desc <> g.propuesta_formativa_guarani OR
-             m.dedicacion_desc <> g.actividad_guarani))
-            $whereClause
-        ORDER BY 
-            m.apellidonombre_desc
-        LIMIT :limit OFFSET :offset";
+    COALESCE(m.apellidonombre_desc, 'Sin información') AS \"Apellido Nombre (M)\",
+    COALESCE(m.nro_documento::TEXT, 'Sin información') AS \"Doc (M)\",
+    COALESCE(m.categoria_desc, 'Sin información') AS \"Cat (M)\", 
+    COALESCE(m.nro_cargo::TEXT, 'Sin información') AS \"Cargo (M)\",
+    COALESCE(m.dedicacion_desc, 'Sin información') AS \"Dedicacion(M)\",
+    COALESCE(m.estadodelcargo_desc, 'Sin información') AS \"Estado (M)\", 
+    COALESCE(m.dependenciadesign_desc, 'Sin información') AS \"Dpto (M)\",
+    COALESCE(g.responsabilidad_academica_guarani, 'Sin información') AS \"Resp Acad (G)\",
+    COALESCE(g.propuesta_formativa_guarani, 'Sin información') AS \"Propuesta (G)\", 
+    COALESCE(g.comision_guarani, 'Sin información') AS \"Com (G)\",
+    COALESCE(g.anio_guarani::TEXT, 'Sin información') AS \"Año( G)\",
+    COALESCE(g.periodo_guarani, 'Sin información') AS \"Périodo (G)\",
+    COALESCE(g.actividad_guarani, 'Sin información') AS \"Actividad( G)\",
+    COALESCE(g.cursados_guarani, 'Sin información') AS \"Est (G)\"
+FROM 
+    docentes_mapuche AS m
+LEFT JOIN 
+    docentes_guarani AS g 
+    ON m.nro_documento::VARCHAR = g.num_documento  
+WHERE 
+    (g.num_documento IS NULL OR 
+    (m.categoria_desc <> g.propuesta_formativa_guarani OR
+     m.dedicacion_desc <> g.actividad_guarani))
+    $whereClause
+GROUP BY
+    m.apellidonombre_desc, m.nro_documento, m.categoria_desc, m.nro_cargo,
+    m.dedicacion_desc, m.estadodelcargo_desc, m.dependenciadesign_desc,
+    g.responsabilidad_academica_guarani, g.propuesta_formativa_guarani,
+    g.comision_guarani, g.anio_guarani, g.periodo_guarani,
+    g.actividad_guarani, g.cursados_guarani
+ORDER BY 
+    m.apellidonombre_desc
+LIMIT :limit OFFSET :offset";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);

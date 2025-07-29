@@ -8,35 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <style>
-    .selection-title {
-        background-color: #f8f9fa;
-        padding: 15px;
-        margin: 20px auto;
-        border-radius: 5px;
-        font-weight: bold;
-        text-align: center;
-        font-size: 1.25rem;
-        max-width: 80%;
-    }
-
-    /* Estilos para el filtro en el navbar */
-    .filter-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .filter-label {
-        margin-bottom: 0;
-        white-space: nowrap;
-        font-weight: 500;
-    }
-
-    .filter-input {
-        width: 200px;
-    }
-    </style>
 </head>
 
 <body>
@@ -44,7 +15,6 @@
         <header class="app-header">
             <img class="logo" src="logo.png">
         </header>
-
         <nav class="navbar navbar-expand-lg custom-navbar">
             <div class="container-fluid">
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
