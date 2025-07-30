@@ -1,233 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css">
   <title>Login Universidad - By Maximiliano ❤️</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-    body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #3498db, #2c3e50);
-  background-attachment: fixed;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  color: #333;
-}
-
-
-    .container {
-      display: flex;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      max-width: 900px;
-      width: 100%;
-    }
-
-    .image-side {
-      flex: 1;
-      background-color: #eef2f7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .image-side img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    .login-container {
-      flex: 1;
-      padding: 40px;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 10px;
-      color: #2c3e50;
-    }
-
-    .subtitle {
-      font-size: 14px;
-      color: #7f8c8d;
-      margin-bottom: 30px;
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #2c3e50;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border 0.3s;
-    }
-
-    input:focus {
-      border-color: #3498db;
-      outline: none;
-    }
-
-    .options {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      font-size: 13px;
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-    }
-
-    .remember-me input {
-      margin-right: 5px;
-    }
-
-    .forgot-password a {
-      color: #3498db;
-      text-decoration: none;
-    }
-
-    .btn-login {
-      background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      width: 100%;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .btn-login:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
-    }
-
-    .separator {
-      margin: 25px 0;
-      display: flex;
-      align-items: center;
-      color: #7f8c8d;
-      font-size: 12px;
-    }
-
-    .separator::before,
-    .separator::after {
-      content: "";
-      flex: 1;
-      border-bottom: 1px solid #ddd;
-      margin: 0 10px;
-    }
-
-    .social-login {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-    }
-
-    .social-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .social-btn:hover {
-      background: #e0e0e0;
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-
-      .image-side {
-        padding: 20px 0;
-      }
-    }
-  </style>
 </head>
+
 <body>
 
   <div class="container">
-    <div class="image-side">
-      <img src="Sin título.jpg" alt="Imagen de login">
+    <div class="logo-container">
+      <div class="image-side">
+        <img src="logo.png" alt="Imagen de login">
+      </div>
+      <div class="tincuy">
+        <p>Tinkuy: Del quechua, "Encuentro" o "Unión armónica". <br>
+          En la tradición andina, representa la convergencia de fuerzas complementarias para crear algo superior.</p>
+      </div>
     </div>
-
     <div class="login-container">
-      <h1>Sign In</h1>
-      <p class="subtitle">Lorem ipsum dolor sit amet elit. Sapiente sit aut eos consectetur adipisicing.</p>
-
+      <h1>Iniciar Sesion</h1>
       <form id="loginForm">
         <div class="input-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" placeholder="Enter your username">
+          <label for="username">Usuario</label>
+          <input type="text" id="username" placeholder="Ingrese su usuario">
         </div>
-
         <div class="input-group">
           <label for="password">Password</label>
-          <input type="password" id="password" placeholder="Enter your password">
+          <input type="password" id="password" placeholder="Ingrese su password">
         </div>
-
-        <div class="options">
-          <div class="remember-me">
-            <input type="checkbox" id="remember">
-            <label for="remember">Remember me</label>
-          </div>
-          <div class="forgot-password">
-            <a href="#">Forgot Password?</a>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-login">Log in</button>
-
-        <div class="separator">or login with</div>
-
-        <div class="social-login">
-          <div class="social-btn">f</div>
-          <div class="social-btn">G</div>
-          <div class="social-btn">in</div>
-        </div>
+        <button type="submit" class="btn-login">Login</button>
       </form>
     </div>
   </div>
-
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('¡Formulario listo para conectar a la base de datos mañana! 💾');
-    });
-  </script>
+<p class="footer-text">TINKUY v.1.0 &copy; 2025 - Desarrollado por el Área de Sistemas de la Universidad Nacional de Avellaneda.</p>
 </body>
 </html>
