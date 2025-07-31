@@ -110,7 +110,7 @@
 
         try {
             const response = await fetch(
-                `http://localhost:8000/consultas.php?action=getData&type=${currentQueryType}&page=${currentPage}&search=${encodeURIComponent(currentSearchTerm)}`
+                `http://172.16.1.58/Tincuy/consultas.php?action=getData&type=${currentQueryType}&page=${currentPage}&search=${encodeURIComponent(currentSearchTerm)}`
             );
 
             if (!response.ok) throw new Error('Error en la respuesta del servidor');

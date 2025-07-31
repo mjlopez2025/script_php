@@ -1,6 +1,4 @@
 <?php
-header('Content-Type: application/json');
-
 class ConsultasDocentes {
     private $conn;
 
