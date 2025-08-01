@@ -28,7 +28,7 @@ header("Pragma: no-cache");
                 <div class="logo-container">
                     <img class="logo" src="logo.png">
                 </div>
-                <button id="logoutBtn" class="btn btn-danger btn-sm">
+                <button id="logoutBtn" class="btn btn--sm">
                     <i class="fas fa-sign-out-alt"></i> Salir
                 </button>
             </div>
@@ -46,9 +46,9 @@ header("Pragma: no-cache");
                                 Docentes
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" data-value="guarani">Docentes Guaraní</a></li>
-                                <li><a class="dropdown-item" data-value="mapuche">Docentes Mapuche</a></li>
-                                <li><a class="dropdown-item" data-value="combinados">Docentes Combinados</a></li>
+                                <li><a class="dropdown-item" data-value="guarani">Docentes con Asignación Aulica</a></li>
+                                <li><a class="dropdown-item" data-value="mapuche">Docentes con Designación</a></li>
+                                <li><a class="dropdown-item" data-value="combinados">Docentes - Unificado</a></li>
                             </ul>
                         </li>
                     </ul>

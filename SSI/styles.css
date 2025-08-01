@@ -557,13 +557,14 @@ th {
         width: 200px;
     }
 #logoutBtn {
-    margin-top: 50px;
+    margin-top: -70px;
     margin-right: 0; /* Pegado al borde */
     transition: all 0.3s ease;
     border-radius: 20px;
     padding: 5px 15px;
     position: relative;
     z-index: 2;
+    color: white;
 }
 
     
