@@ -430,10 +430,13 @@ th {
     margin-top: -15px;
 }
 .undav {
-    margin-left: -2680px;
     width: 80px;
-    margin-top: -15px;
+    margin-top: 10px;
+    position: fixed;
+    left: 10px;
+    top: 0; /* si querés que quede arriba */
 }
+
 .logo_undav {
     width: 100px; /* Ancho exacto */
     height: auto; /* Alto proporcional */
