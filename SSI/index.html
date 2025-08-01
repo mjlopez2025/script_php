@@ -18,6 +18,9 @@
         <p style="font-size: 10pt; font-weight: normal;">Tinkuy: Del quechua, "Encuentro" o "Unión armónica". <br>
           En la tradición andina, representa la convergencia de fuerzas complementarias para crear algo superior.</p>
       </div>
+      <div class="logo_undav_login">
+        <img src="undav.png" style="width: 50px !important; height: auto !important; margin-top: 20px;">
+      </div>
     </div>
     <div class="login-container">
       <h1>Iniciar Sesión</h1>
@@ -25,14 +28,14 @@
         <div class="input-group">
           <label for="username">Usuario</label>
           <div class="input-with-icon">
-            <input type="text" id="username" value="" placeholder="__Ingrese su usuario" required autocomplete="off">
+            <input type="text" id="username" value="" placeholder="Ingrese su usuario" required autocomplete="off">
             <i class="fas fa-user icon"></i>
           </div>
         </div>
         <div class="input-group">
           <label for="password">Contraseña</label>
           <div class="input-with-icon">
-            <input type="password" id="password" value="" placeholder="__Ingrese su contraseña" required autocomplete="off">
+            <input type="password" id="password" value="" placeholder="Ingrese su contraseña" required autocomplete="off">
             <i class="fas fa-lock icon"></i>
             <span class="toggle-password" onclick="togglePassword('password')">
               <i class="fas fa-eye"></i>
@@ -46,8 +49,10 @@
       </form>
     </div>
   </div>
-  <p class="footer-text">TINKUY v.1.0 &copy; 2025 - Desarrollado por el Área de Sistemas de la Universidad Nacional de Avellaneda.</p>
-
+<p class="footer-text">
+    <img class="logo_undav" src="undav.png" style="width: 35px !important; height: auto !important;">
+    v.1.0 &copy; 2025 - Desarrollado por el Área de Sistemas...
+</p>
   <script>
     // Función para mostrar/ocultar contraseña
     function togglePassword(fieldId) {
@@ -94,11 +99,11 @@
           })
         });
 
-        const data = await response.json();
+        const data = await response.json(); 
 
         if (data.success) {
           // Redirigir al panel principal o mostrar éxito
-          window.location.href = 'index.php'; // reemplazalo por tu página real
+          window.location.href = 'indexx.php'; // reemplazalo por tu página real
         } else {
           alert(data.message || 'Usuario o contraseña incorrectos');
         }
@@ -112,6 +117,13 @@
   const form = document.querySelector("form");
   if (form) form.reset();
 });
+// Limpiar parámetros de logout al cargar
+if (window.location.search.includes('logout')) {
+    history.replaceState(null, null, window.location.pathname);
+}
+
+// Permitir acceso normalmente
+sessionStorage.setItem('allowNavigation', 'true');
   </script>
 </body>
 </html>

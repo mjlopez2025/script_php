@@ -401,19 +401,21 @@ input[type="email"]::placeholder {
 
 .input-with-icon .icon {
   position: absolute;
-  left: 15px;
+  left: 15px; /* Ajusté esta posición */
   top: 50%;
   transform: translateY(-50%);
   color: #3498db;
+  z-index: 2; /* Para que estén sobre el input si es necesario */
 }
 
 .input-with-icon input {
   width: 100%;
-  padding: 12px 15px 12px 48px; /* Espacio para el icono (izq: 40px) */
+  padding: 12px 15px 12px 40px !important; /* Aumenté el padding izquierdo */
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
-  box-sizing: border-box; /* Importante para que el padding no lo desborde */
+  box-sizing: border-box;
+  transition: all 0.3s ease;
 }
 
 .toggle-password {
