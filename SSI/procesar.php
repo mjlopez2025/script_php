@@ -3,10 +3,10 @@ require_once 'consultas.php';
 
 $config_sii = [
     'host'     => '172.16.1.58',
-    'port'     => '5432',
-    'dbname'   => 'sii',
-    'user'     => 'postgres',
-    'password' => 'postgres'
+    'port'     => '5433',
+    'dbname'   => 'tinkuy',
+    'user'     => 'mjlopez',
+    'password' => '13082019'
 ];
 
 try {

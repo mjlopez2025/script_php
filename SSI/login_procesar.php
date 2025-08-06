@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 $config = [
     'host'     => '172.16.1.58',
     'port'     => '5433',
-    'dbname'   => 'sii',
+    'dbname'   => 'tinkuy',
     'user'     => 'mjlopez',
     'password' => '13082019'
 ];

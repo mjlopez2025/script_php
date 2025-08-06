@@ -4,10 +4,10 @@ ini_set('display_errors', 1);
 
 $remoteConfig = [
     'host'     => '172.16.1.58',
-    'port'     => '5432',
+    'port'     => '5433',
     'dbname'   => 'sii',       
-    'user'     => 'postgres',
-    'password' => 'postgres'
+    'user'     => 'mjlopez',
+    'password' => '13082019'
 ];
 
 if (!extension_loaded('pdo_pgsql')) {

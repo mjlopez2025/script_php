@@ -22,16 +22,18 @@ try {
 
         // === Actualizar el primer docente en el registro original ===
         $primero = explode(",", $docentes[0]);
-        $nombre1 = trim($primero[0] ?? null);
+        $nombre1 = preg_replace('/^[\.\-,\s]+/', '', trim($primero[0] ?? null));
         $tipo1 = trim($primero[1] ?? null);
         $doc1   = trim($primero[2] ?? null);
+
+        $docente_limpio = preg_replace('/^[\.\-,\s]+/', '', trim($docentes[0]));
 
         $conn->prepare("
             UPDATE Docentes_Guarani 
             SET docente_guarani = ?, ape_nom1_guarani = ?, tipo_doc1_guarani = ?, num_doc1_guarani = ?
             WHERE id = ?
         ")->execute([
-            trim($docentes[0]), $nombre1, $tipo1, $doc1,
+            $docente_limpio, $nombre1, $tipo1, $doc1,
             $registro['id']
         ]);
 
@@ -50,12 +52,12 @@ try {
 
             // Datos del docente adicional
             $partes = explode(",", $docentes[$i]);
-            $nombre = trim($partes[0] ?? null);
+            $nombre = preg_replace('/^[\.\-,\s]+/', '', trim($partes[0] ?? null));
             $tipo_doc = trim($partes[1] ?? null);
             $num_doc = trim($partes[2] ?? null);
 
             // Agregar los nuevos datos del docente
-            $nuevoRegistro['docente_guarani'] = trim($docentes[$i]);
+            $nuevoRegistro['docente_guarani'] = preg_replace('/^[\.\-,\s]+/', '', trim($docentes[$i]));
             $nuevoRegistro['ape_nom1_guarani'] = $nombre;
             $nuevoRegistro['tipo_doc1_guarani'] = $tipo_doc;
             $nuevoRegistro['num_doc1_guarani'] = $num_doc;
@@ -83,4 +85,3 @@ try {
 } catch (PDOException $e) {
     echo "\n🚨 Error: " . $e->getMessage() . "\n";
 }
-

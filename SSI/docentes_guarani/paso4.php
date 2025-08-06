@@ -8,19 +8,15 @@ try {
 
     // 2. Normalización del periodo y extracción del año
     echo "4.2. Procesando periodo_guarani y año...\n";
+
+    // Extraemos el año y eliminamos la parte "YYYY - "
     $conn->exec("
         UPDATE public.Docentes_Guarani 
-        SET 
-            anio_guarani = SUBSTRING(periodo_guarani FROM 1 FOR 4),
-            periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 10))
-        WHERE periodo_guarani LIKE '2024 - 1 - %'
-    ");
-    
-    $conn->exec("
-        UPDATE public.Docentes_Guarani 
-        SET periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 2))
-        WHERE periodo_guarani LIKE '- %'
-    ");
+    SET 
+    anio_guarani = SUBSTRING(periodo_guarani FROM 1 FOR 4)::INTEGER,
+    periodo_guarani = TRIM(SUBSTRING(periodo_guarani FROM 11))
+    WHERE periodo_guarani ~ '^\d{4}\s+\-\s+';
+");
 
     // 3. Limpieza de docentes
     echo "4.3. Limpiando nombres de docentes...\n";
@@ -87,4 +83,3 @@ try {
 } catch (Exception $e) {
     echo "\nError general: " . $e->getMessage() . "\n";
 }
-

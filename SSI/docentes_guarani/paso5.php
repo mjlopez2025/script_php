@@ -11,7 +11,7 @@ try {
     $total_registros = $conn->query("SELECT COUNT(*) FROM Docentes_Guarani WHERE docente_guarani IS NOT NULL")->fetchColumn();
     echo "Total de registros en la tabla: $total_registros\n";
     
-    $registros_a_procesar = $conn->query("SELECT COUNT(*) FROM Docentes_Guarani WHERE docente_guarani IS NOT NULL AND (tipo_documento IS NULL OR num_documento IS NULL)")->fetchColumn();
+    $registros_a_procesar = $conn->query("SELECT COUNT(*) FROM Docentes_Guarani WHERE docente_guarani IS NOT NULL AND (tipo_doc_guarani IS NULL OR num_doc_guarani IS NULL)")->fetchColumn();
     echo "Registros a procesar: $registros_a_procesar\n";
 
     // 3. Seleccionar registros para procesar
@@ -19,7 +19,7 @@ try {
         SELECT id, docente_guarani 
         FROM Docentes_Guarani 
         WHERE docente_guarani IS NOT NULL
-          AND (tipo_documento IS NULL OR num_documento IS NULL)
+          AND (tipo_doc_guarani IS NULL OR num_doc_guarani IS NULL)
     ");
 
     $procesados = 0;
@@ -37,13 +37,13 @@ try {
         // Patrón para extraer datos
         if (preg_match('/^([^,]+?)\s*[,|-]\s*([^,]+?)\s*[,|-]\s*([^,]+)$/', $docente_raw, $matches)) {
             $nombre_completo = trim($matches[1]);
-            $tipo_documento = trim($matches[2]);
-            $numero_documento = trim($matches[3]);
+            $tipo_doc_guarani = trim($matches[2]);
+            $num_doc_guarani = trim($matches[3]);
             
             $output .= "\nDatos extraídos:";
             $output .= "\n- Nombre completo: $nombre_completo";
-            $output .= "\n- Tipo documento: $tipo_documento";
-            $output .= "\n- Número documento: $numero_documento";
+            $output .= "\n- Tipo documento: $tipo_doc_guarani";
+            $output .= "\n- Número documento: $num_doc_guarani";
             
             try {
                 // Actualizar los campos en la base de datos
@@ -51,15 +51,15 @@ try {
                     UPDATE Docentes_Guarani
                     SET 
                         docente_guarani = ?,
-                        tipo_documento = ?,
-                        num_documento = ?
+                        tipo_doc_guarani = ?,
+                        num_doc_guarani = ?
                     WHERE id = ?
                 ");
                 
                 $stmt->execute([
                     $nombre_completo,
-                    $tipo_documento,
-                    $numero_documento,
+                    $tipo_doc_guarani,
+                    $num_doc_guarani,
                     $id
                 ]);
                 

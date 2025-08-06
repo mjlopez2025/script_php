@@ -102,63 +102,111 @@ LIMIT :limit OFFSET :offset";
     // 2. DOCENTES MAPUCHE 
     // ================================
     public function obtenerDocentesMapuche($page = 1, $perPage = 50, $searchTerm = '') {
-        $offset = ($page - 1) * $perPage;
-        $whereClause = '';
-        $params = [];
+    $offset = ($page - 1) * $perPage;
+    $whereClause = '';
+    $params = [];
 
-        if (!empty($searchTerm)) {
-            $whereClause = " WHERE apellidonombre_desc ILIKE :searchTerm";
-            $params[':searchTerm'] = '%' . $searchTerm . '%';
-        }
+    if (!empty($searchTerm)) {
+        $whereClause = " WHERE apellidonombre_desc ILIKE :searchTerm";
+        $params[':searchTerm'] = '%' . $searchTerm . '%';
+    }
 
-        $sql = "SELECT 
-            COALESCE(apellidonombre_desc, 'Sin información') AS \"Apellido y Nombre\",
-            COALESCE(nro_documento::TEXT, 'Sin información') AS \"Num. Doc.\",
-            COALESCE(categoria_desc, 'Sin información') AS \"EstCategoria\",
-            COALESCE(nro_cargo::TEXT, 'Sin información') AS \"Cargo\",
-            COALESCE(dedicacion_desc, 'Sin información') AS \"Dedicación\",
-            COALESCE(estadodelcargo_desc, 'Sin información') AS \"Cargo\",
-            COALESCE(dependenciadesign_desc, 'Sin información') AS \"Dependencia\",
-            COALESCE(anio_id::TEXT, 'Sin información') AS \"Año\"
-        FROM 
-            docentes_mapuche
-        $whereClause
-        ORDER BY 
-            apellidonombre_desc
-        LIMIT :limit OFFSET :offset";
+    // Consulta principal con DISTINCT ON para evitar duplicados
+    $sql = "SELECT 
+        DISTINCT ON (
+            apellidonombre_desc, 
+            nro_documento,
+            categoria_desc,
+            nro_cargo
+        )
+        COALESCE(apellidonombre_desc, 'Sin información') AS \"Apellido y Nombre\",
+        COALESCE(nro_documento::TEXT, 'Sin información') AS \"Num. Doc.\",
+        COALESCE(categoria_desc, 'Sin información') AS \"EstCategoria\",
+        COALESCE(nro_cargo::TEXT, 'Sin información') AS \"Cargo\",
+        COALESCE(dedicacion_desc, 'Sin información') AS \"Dedicación\",
+        COALESCE(estadodelcargo_desc, 'Sin información') AS \"Estado Cargo\",
+        COALESCE(dependenciadesign_desc, 'Sin información') AS \"Dependencia\",
+        COALESCE(anio_id::TEXT, 'Sin información') AS \"Año\"
+    FROM 
+        docentes_mapuche
+    $whereClause
+    ORDER BY 
+        apellidonombre_desc, 
+        nro_documento,
+        categoria_desc,
+        nro_cargo
+    LIMIT :limit OFFSET :offset";
 
+    try {
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         
         if (!empty($searchTerm)) {
-            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%', PDO::PARAM_STR);
         }
         
         $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Si no hay resultados, verificar si es por paginación o realmente vacío
+        if (empty($resultados)) {
+            $total = $this->contarDocentesMapuche($searchTerm);
+            if ($total > 0 && $offset >= $total) {
+                // El usuario está en una página más allá de los resultados
+                $offset = 0;
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+                $stmt->execute();
+                $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        }
 
         return [
-            'data' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+            'data' => $resultados,
             'total' => $this->contarDocentesMapuche($searchTerm)
         ];
-    }
 
-    public function contarDocentesMapuche($searchTerm = '') {
-        $sql = "SELECT COUNT(*) FROM docentes_mapuche";
-        
-        if (!empty($searchTerm)) {
-            $sql .= " WHERE apellidonombre_desc ILIKE :searchTerm";
-        }
-        
+    } catch (PDOException $e) {
+        error_log("Error en obtenerDocentesMapuche: " . $e->getMessage());
+        return [
+            'data' => [],
+            'total' => 0,
+            'error' => $e->getMessage()
+        ];
+    }
+}
+
+public function contarDocentesMapuche($searchTerm = '') {
+    $sql = "SELECT COUNT(*) FROM (
+        SELECT DISTINCT ON (
+            apellidonombre_desc, 
+            nro_documento,
+            categoria_desc,
+            nro_cargo
+        ) 1
+        FROM docentes_mapuche";
+    
+    if (!empty($searchTerm)) {
+        $sql .= " WHERE apellidonombre_desc ILIKE :searchTerm";
+    }
+    
+    $sql .= ") AS subquery";
+    
+    try {
         $stmt = $this->conn->prepare($sql);
         
         if (!empty($searchTerm)) {
-            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%');
+            $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%', PDO::PARAM_STR);
         }
         
         $stmt->execute();
-        return $stmt->fetchColumn();
+        return (int)$stmt->fetchColumn();
+        
+    } catch (PDOException $e) {
+        error_log("Error en contarDocentesMapuche: " . $e->getMessage());
+        return 0;
     }
+}
 
     // ================================
     // 3. DOCENTES GUARANI 
